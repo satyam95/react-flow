@@ -69,7 +69,7 @@ export const ActionNode: React.FC<{
   selected?: boolean;
   onDelete?: () => void;
   onEdit?: () => void;
-}> = ({ data, type, id, selected, onDelete, onEdit }) => {
+}> = ({ data, type, selected, onDelete, onEdit }) => { // id
   const getTypeIcon = () => {
     switch (type) {
       case "api":

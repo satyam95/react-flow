@@ -11,8 +11,14 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate("/editor");
+  };
   return (
     <div className="min-h-screen w-full relative">
       <div
@@ -96,7 +102,7 @@ const LoginPage = () => {
                           Forgot Password?
                         </div>
                       </div>
-                      <Button className="w-full bg-[#EE3425] text-white text-base font-bold h-12 hover:bg-[#EE3425] cursor-pointer">
+                      <Button onClick={handleLogin} className="w-full bg-[#EE3425] text-white text-base font-bold h-12 hover:bg-[#EE3425] cursor-pointer">
                         Log In
                       </Button>
                     </form>
