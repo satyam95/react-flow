@@ -17,7 +17,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    navigate("/editor");
+    navigate("/workflows");
   };
   return (
     <div className="min-h-screen w-full relative">
