@@ -69,7 +69,7 @@ export const ActionNode: React.FC<{
   selected?: boolean;
   onDelete?: () => void;
   onEdit?: () => void;
-}> = ({ data, type, selected, onDelete, onEdit }) => { // id
+}> = ({ data, type, selected, onEdit }) => { // id
   const getTypeIcon = () => {
     switch (type) {
       case "api":
@@ -128,14 +128,14 @@ export const ActionNode: React.FC<{
             <Settings size={18} className="text-[#9AE19D]" />
           </button>
         )}
-        {onDelete && (
+        {data.onDelete && (
           <button
-            onClick={onDelete}
+            onClick={data.onDelete}
             className="p-1 hover:bg-gray-100 rounded-full"
           >
             <Trash2 size={18} className="text-[#FF6B6B]" />
           </button>
-        )}
+         )} 
       </div>
       <Handle
         type="source"

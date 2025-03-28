@@ -87,7 +87,10 @@ const EditorPageContent = () => {
       const newNode: CustomNode = {
         id: newNodeId,
         type: nodeType as CustomNode["type"],
-        data: { label: nodeType.charAt(0).toUpperCase() + nodeType.slice(1) },
+        data: {
+          label: nodeType.charAt(0).toUpperCase() + nodeType.slice(1),
+          onDelete: () => handleDeleteNode(newNodeId),
+        },
         position: { x: newNodeX, y: newNodeY },
         draggable: true,
       };
@@ -170,6 +173,67 @@ const EditorPageContent = () => {
       setIsDirty(true);
     },
     [reactFlowInstance, setNodes, setEdges]
+  );
+
+  const handleDeleteNode = useCallback(
+    (nodeId: string) => {
+      console.log("delete", nodeId);
+  
+      // Update edges
+      setEdges((eds) => {
+        const incomingEdges = eds.filter((e) => e.target === nodeId);
+        const outgoingEdges = eds.filter((e) => e.source === nodeId);
+  
+        if (incomingEdges.length === 1 && outgoingEdges.length === 1) {
+          const newEdge = {
+            id: `${incomingEdges[0].source}-${outgoingEdges[0].target}`,
+            source: incomingEdges[0].source,
+            target: outgoingEdges[0].target,
+            sourceHandle: "a",
+            targetHandle: "a",
+            type: "custom",
+            style: { strokeWidth: 2, stroke: "#828282" },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 20,
+              height: 20,
+              color: "#828282",
+            },
+            data: { addNewNode },
+          };
+          return [...eds.filter((e) => e.source !== nodeId && e.target !== nodeId), newEdge];
+        } else {
+          return eds.filter((e) => e.source !== nodeId && e.target !== nodeId);
+        }
+      });
+  
+      // Update nodes by removing the deleted node and adjusting positions
+      setNodes((nds) => {
+        const deletedNode = nds.find((n) => n.id === nodeId);
+        if (!deletedNode) return nds.filter((n) => n.id !== nodeId);
+  
+        const deletedY = deletedNode.position.y;
+        const spacing = 150; // Adjust this value based on your desired spacing
+  
+        // Shift all nodes below the deleted node upwards
+        const updatedNodes = nds
+          .filter((n) => n.id !== nodeId)
+          .map((node) => {
+            if (node.position.y > deletedY) {
+              return {
+                ...node,
+                position: { ...node.position, y: node.position.y - spacing },
+              };
+            }
+            return node;
+          });
+  
+        return updatedNodes;
+      });
+  
+      setIsDirty(true);
+    },
+    [setNodes, setEdges, addNewNode]
   );
 
   // Define initial edges with stable addNewNode
