@@ -5,6 +5,10 @@ import NotFound from "./pages/NotFound";
 import WorkflowListPage from "./pages/WorkflowListPage";
 import { EditorPage } from "./pages/EditorPage";
 
+import { Toaster } from "@/components/ui/sonner";
+import { useEffect } from "react";
+import { initializeWorkflows } from "./services/storage";
+
 const AppRoutes = () => (
   <BrowserRouter>
     <Routes>
@@ -12,14 +16,23 @@ const AppRoutes = () => (
 
       <Route path="/workflows" element={<WorkflowListPage />} />
       <Route path="/editor" element={<EditorPage />} />
-      
+      <Route path="/editor/:id" element={<EditorPage />} />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
 );
 
 function App() {
-  return <AppRoutes />;
+  useEffect(() => {
+    initializeWorkflows();
+  }, []);
+  return (
+    <>
+      <Toaster />
+      <AppRoutes />
+    </>
+  );
 }
 
 export default App;

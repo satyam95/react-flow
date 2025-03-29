@@ -5,15 +5,22 @@ import { useNavigate } from "react-router-dom";
 interface HeaderPanelProps {
   onSave: () => void;
   isDirty: boolean;
+  name: string;
 }
 
-export const HeaderPanel: React.FC<HeaderPanelProps> = ({ onSave, isDirty }) => {
+export const HeaderPanel: React.FC<HeaderPanelProps> = ({
+  onSave,
+  isDirty,
+  name
+}) => {
   const navigate = useNavigate();
 
   const handleCancel = () => {
     if (
       isDirty &&
-      !window.confirm("You have unsaved changes. Are you sure you want to leave?")
+      !window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      )
     ) {
       return;
     }
@@ -29,7 +36,7 @@ export const HeaderPanel: React.FC<HeaderPanelProps> = ({ onSave, isDirty }) => 
       >
         {"<- Go Back"}
       </Button>
-      <div className="text-[#221F20] font-semibold text-base">Untitled</div>
+      <div className="text-[#221F20] font-semibold text-base">{name == "" ? "Untitled" : name}</div>
       <Button variant="ghost" size="icon" onClick={onSave}>
         <img src="/save.png" alt="save icon" height={32} width={32} />
       </Button>
