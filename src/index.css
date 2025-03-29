@@ -147,7 +147,7 @@ body {
 }
 
 .dialog-shadow {
-  box-shadow: 0px 0px 8px 0px #2C3E5033;
+  box-shadow: 0px 0px 8px 0px #2c3e5033;
 }
 
 .timeline-item:last-child .vertical-line {
@@ -159,9 +159,23 @@ body {
 }
 
 .custom-slider [data-slot="slider-thumb"] {
-  background-color: #4F4F4F;
+  background-color: #4f4f4f;
 }
 
 .shadow-blu {
-  box-shadow: 0px 0px 4px 0px #627FAC33;
+  box-shadow: 0px 0px 4px 0px #627fac33;
+}
+
+.shadow-badge {
+  box-shadow: 0px 0px 8px 0px #2c3e5033;
+}
+
+button.select-custom {
+  height: 42px;
+  border: 1px solid #E0E0E0;
+  font-size: 16px;
+}
+
+button.select-custom[data-placeholder] {
+  color: #bdbdbd;
 }

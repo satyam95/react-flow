@@ -69,7 +69,7 @@ export const ActionNode: React.FC<{
   selected?: boolean;
   onDelete?: () => void;
   onEdit?: () => void;
-}> = ({ data, type, selected, onEdit }) => { // id
+}> = ({ data, type, selected }) => {
   const getTypeIcon = () => {
     switch (type) {
       case "api":
@@ -99,11 +99,18 @@ export const ActionNode: React.FC<{
     }
   };
 
+  const handleNodeClick = () => {
+    if (data.onEdit) {
+      data.onEdit();
+    }
+  };
+
   return (
     <div
       className={`flex items-center gap-2 px-4 py-3 rounded-lg bg-white border ${
         selected ? "border-[#9AE19D]" : "border-[#E5E7EB]"
-      } min-w-[330px] shadow-sm`}
+      } min-w-[330px] shadow-sm cursor-pointer`}
+      onClick={handleNodeClick}
     >
       <Handle
         type="target"
@@ -120,22 +127,17 @@ export const ActionNode: React.FC<{
         {data.status === "error" && (
           <CircleAlert size={20} className="text-[#FF6B6B]" />
         )}
-        {!data.status && onEdit && (
-          <button
-            onClick={onEdit}
-            className="p-1 hover:bg-gray-100 rounded-full"
-          >
-            <Settings size={18} className="text-[#9AE19D]" />
-          </button>
-        )}
         {data.onDelete && (
           <button
-            onClick={data.onDelete}
+            onClick={(event) => {
+              event.stopPropagation();
+              data.onDelete();
+            }}
             className="p-1 hover:bg-gray-100 rounded-full"
           >
             <Trash2 size={18} className="text-[#FF6B6B]" />
           </button>
-         )} 
+        )}
       </div>
       <Handle
         type="source"
