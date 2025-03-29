@@ -7,19 +7,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { getWorkflows, Workflow } from "@/services/storage";
+import { formatTimestampToDate } from "@/lib/dateFormat";
+import { deleteWorkflow, getWorkflows, Workflow } from "@/services/storage";
 import { ArrowDown, MoreVertical, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const WorkflowListPage = () => {
   const navigate = useNavigate();
-  const [executeModal, setExecuteModal] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [showProcess, setShowProcess] = useState(false);
+  const [executeModal, setExecuteModal] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [showProcess, setShowProcess] = useState<string | null>(null);
 
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchWorkflows();
@@ -32,14 +41,33 @@ const WorkflowListPage = () => {
       const data = getWorkflows();
       setWorkflows(data);
       setIsLoading(false);
-    }, 800);
+    }, 300);
   };
 
   const handleCreateWorkflow = () => {
     navigate("/editor");
   };
 
-  console.log(workflows);
+  const toggleProcess = (workflowId: string) => {
+    setShowProcess((prev) => (prev === workflowId ? null : workflowId));
+  };
+
+  const handleWorkflowDelete = (id: string) => {
+    deleteWorkflow(id);
+    setDeleteModal(null);
+    fetchWorkflows();
+  };
+
+  // Filter workflows based on search term
+  const filteredWorkflows = workflows.filter((workflow) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      workflow.name.toLowerCase().includes(searchLower) ||
+      workflow.id.toLowerCase().includes(searchLower) ||
+      (workflow.description &&
+        workflow.description.toLowerCase().includes(searchLower))
+    );
+  });
 
   return (
     <div className="min-h-screen w-full bg-[#FDFBF6] p-6">
@@ -61,6 +89,8 @@ const WorkflowListPage = () => {
             <div className="bg-white border border-[#E0E0E0] rounded-sm flex justify-between items-center px-3 h-8 min-w-[320px] max-w-[320px]">
               <Input
                 placeholder="Search By Workflow Name/ID"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="p-0 bg-transparent border-none placeholder:text-[#BDBDBD] text-xs shadow-none ring-0 h-8 focus-visible:shadow-none focus-visible:ring-0"
               />
               <img src="/search.png" alt="search icon" width={14} height={14} />
@@ -75,17 +105,30 @@ const WorkflowListPage = () => {
                 <div className="flex items-center justify-center py-12">
                   <div className="loading-indicator" />
                 </div>
+              ) : filteredWorkflows.length === 0 ? (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-semibold mb-2">
+                    No workflows found
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    <p className="text-muted-foreground mb-6">
+                      {searchTerm
+                        ? "Try adjusting your search term"
+                        : "Create your first workflow to get started"}
+                    </p>
+                  </p>
+                </div>
               ) : (
                 <div>
                   <div className="border-b border-[#F68B21]">
                     <div className="flex justify-between items-center px-3 py-2">
-                      <div className="w-[200px] text-black text-sm font-medium">
+                      <div className="w-[170px] text-black text-sm font-medium">
                         Workflow Name
                       </div>
-                      <div className="w-[70px] text-black text-sm font-medium">
+                      <div className="w-[150px] text-black text-sm font-medium">
                         ID
                       </div>
-                      <div className="w-[250px] text-black text-sm font-medium">
+                      <div className="w-[150px] text-black text-sm font-medium">
                         Last Edited On
                       </div>
                       <div className="flex-1 text-black text-sm font-medium">
@@ -98,20 +141,23 @@ const WorkflowListPage = () => {
                       <div className="w-[50px]"></div>
                     </div>
                   </div>
-                  {workflows.map((workflow) => (
-                    <div className="border-b border-[#F8F2E7] last:border-0" key={workflow.id}>
+                  {filteredWorkflows.map((workflow) => (
+                    <div
+                      className="border-b border-[#F8F2E7] last:border-0"
+                      key={workflow.id}
+                    >
                       <div className="flex justify-between items-center px-3 py-4">
-                        <div className="w-[200px] font-medium text-sm text-[#4F4F4F]">
-                          Workflow Name here...
+                        <div className="w-[170px] font-medium text-sm text-[#4F4F4F]">
+                          {workflow.name}
                         </div>
-                        <div className="w-[70px] text-sm text-[#4F4F4F]">
-                          #494
+                        <div className="w-[150px] text-sm text-[#4F4F4F]">
+                          {workflow.id}
                         </div>
-                        <div className="w-[250px] text-xs text-[#4F4F4F]">
-                          zubin Khanna | 22:43 IST - 28/05
+                        <div className="w-[150px] text-xs text-[#4F4F4F]">
+                          {formatTimestampToDate(workflow.updatedAt)}
                         </div>
                         <div className="flex-1 text-xs text-[#4F4F4F]">
-                          Some description here regarding the flow..
+                          {workflow.description}
                         </div>
                         <div className="w-[50px] flex items-center">
                           <button className="cursor-pointer">
@@ -127,7 +173,12 @@ const WorkflowListPage = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setExecuteModal(!executeModal)}
+                            onClick={() =>
+                              setExecuteModal({
+                                id: workflow.id,
+                                name: workflow.name,
+                              })
+                            }
                             className="text-[#221F20] cursor-pointer font-medium text-sm py-2 px-3 rounded-md"
                           >
                             Execute
@@ -137,6 +188,7 @@ const WorkflowListPage = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => navigate(`/editor/${workflow.id}`)}
                             className="text-[#221F20] cursor-pointer font-medium text-sm py-2 px-3 rounded-md"
                           >
                             Edit
@@ -159,7 +211,12 @@ const WorkflowListPage = () => {
                             >
                               <DropdownMenuItem
                                 className="text-[#EE3425] text-sm font-normal underline"
-                                onClick={() => setDeleteModal(!deleteModal)}
+                                onClick={() =>
+                                  setDeleteModal({
+                                    id: workflow.id,
+                                    name: workflow.name,
+                                  })
+                                }
                               >
                                 Delete
                               </DropdownMenuItem>
@@ -169,9 +226,9 @@ const WorkflowListPage = () => {
                         <div className="w-[50px] flex items-center">
                           <button
                             className={`text-black cursor-pointer transition-transform duration-400 ${
-                              showProcess ? "rotate-180" : ""
+                              showProcess === workflow.id ? "rotate-180" : ""
                             }`}
-                            onClick={() => setShowProcess(!showProcess)}
+                            onClick={() => toggleProcess(workflow.id)}
                           >
                             <ArrowDown size={24} />
                           </button>
@@ -179,7 +236,7 @@ const WorkflowListPage = () => {
                       </div>
                       <div
                         className={`bg-[#FFFAF2] overflow-y-auto transition-all duration-400 ${
-                          showProcess ? "h-38" : "h-0"
+                          showProcess === workflow.id ? "h-38" : "h-0"
                         }`}
                       >
                         <div className="py-5 space-y-9">
@@ -213,15 +270,14 @@ const WorkflowListPage = () => {
                 <div className="flex justify-end py-2">
                   <button
                     className="text-black"
-                    onClick={() => setExecuteModal(!executeModal)}
+                    onClick={() => setExecuteModal(null)}
                   >
                     <X size={18} />
                   </button>
                 </div>
                 <div className="pt-6 pb-12 space-y-1.5 text-center">
                   <h3 className="text-[#333333] text-sm font-semibold">
-                    "Are you sure you want to Execute the process
-                    'Process_Name'?
+                    Are you sure you want to execute the '{executeModal.name}'?
                   </h3>
                   <p className="text-[#EE3425] text-xs font-medium">
                     You cannot Undo this step
@@ -240,7 +296,7 @@ const WorkflowListPage = () => {
                   variant="outline"
                   size="sm"
                   className="text-[#4F4F4F] font-medium text-sm py-1.5 px-3 rounded-sm border-[#E0E0E0]"
-                  onClick={() => setExecuteModal(!executeModal)}
+                  onClick={() => setExecuteModal(null)}
                 >
                   No
                 </Button>
@@ -257,14 +313,14 @@ const WorkflowListPage = () => {
                 <div className="flex justify-end py-2">
                   <button
                     className="text-black"
-                    onClick={() => setExecuteModal(!deleteModal)}
+                    onClick={() => setDeleteModal(null)}
                   >
                     <X size={18} />
                   </button>
                 </div>
                 <div className="pt-6 pb-12 space-y-1.5 text-center">
                   <h3 className="text-[#333333] text-sm font-semibold">
-                    "Are you sure you want to Delete 'Process_Name'?
+                    "Are you sure you want to Delete '{deleteModal.name}'?
                   </h3>
                   <p className="text-[#EE3425] text-xs font-medium">
                     You cannot Undo this step
@@ -275,6 +331,7 @@ const WorkflowListPage = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => handleWorkflowDelete(deleteModal.id)}
                   className="text-[#4F4F4F] font-medium text-sm py-1.5 px-3 rounded-sm border-[#E0E0E0]"
                 >
                   Yes
@@ -283,7 +340,7 @@ const WorkflowListPage = () => {
                   variant="outline"
                   size="sm"
                   className="text-[#4F4F4F] font-medium text-sm py-1.5 px-3 rounded-sm border-[#E0E0E0]"
-                  onClick={() => setDeleteModal(!deleteModal)}
+                  onClick={() => setDeleteModal(null)}
                 >
                   No
                 </Button>
