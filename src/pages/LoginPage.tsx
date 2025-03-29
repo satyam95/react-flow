@@ -11,13 +11,26 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    navigate("/workflows");
+  const { login } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await login(email, password);
+    } catch (error) {
+      console.error("Login failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <div className="min-h-screen w-full relative">
@@ -54,7 +67,7 @@ const LoginPage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <form className="space-y-3">
+                    <form onSubmit={handleSubmit} className="space-y-3">
                       <div className="space-y-1.5">
                         <Label
                           htmlFor="email"
@@ -66,6 +79,8 @@ const LoginPage = () => {
                           id="email"
                           type="email"
                           placeholder="Type here..."
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                           required
                           className="h-[42px] border-[#E0E0E0] text-base placeholder:text-[#BDBDBD] bg-white placeholder:text-base shadow-none ring-0 focus-visible:shadow-none focus-visible:ring-0"
                         />
@@ -81,6 +96,8 @@ const LoginPage = () => {
                           id="password"
                           type="password"
                           placeholder="Type here..."
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
                           required
                           className="h-[42px] border-[#E0E0E0] text-base placeholder:text-[#BDBDBD] bg-white placeholder:text-base shadow-none ring-0 focus-visible:shadow-none focus-visible:ring-0"
                         />
@@ -102,8 +119,16 @@ const LoginPage = () => {
                           Forgot Password?
                         </div>
                       </div>
-                      <Button onClick={handleLogin} className="w-full bg-[#EE3425] text-white text-base font-bold h-12 hover:bg-[#EE3425] cursor-pointer">
-                        Log In
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full bg-[#EE3425] text-white text-base font-bold h-12 hover:bg-[#EE3425] cursor-pointer flex justify-center items-center"
+                      >
+                        {isLoading ? (
+                          "Logging..."
+                        ) : (
+                          "Log In"
+                        )}
                       </Button>
                     </form>
                     <div className="flex justify-between items-center gap-2">
@@ -134,10 +159,7 @@ const LoginPage = () => {
                 </CardContent>
                 <CardFooter className="pt-1">
                   <div className="text-xs text-black font-normal text-center w-full">
-                    New User?{" "}
-                    <span className="font-bold cursor-pointer">
-                      SIGN UP HERE
-                    </span>
+                    Use any vaild email and password to login.
                   </div>
                 </CardFooter>
               </Card>

@@ -59,15 +59,17 @@ const WorkflowListPage = () => {
   };
 
   // Filter workflows based on search term
-  const filteredWorkflows = workflows.filter((workflow) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      workflow.name.toLowerCase().includes(searchLower) ||
-      workflow.id.toLowerCase().includes(searchLower) ||
-      (workflow.description &&
-        workflow.description.toLowerCase().includes(searchLower))
-    );
-  });
+  const filteredWorkflows = workflows
+    .filter((workflow) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        workflow.name.toLowerCase().includes(searchLower) ||
+        workflow.id.toLowerCase().includes(searchLower) ||
+        (workflow.description &&
+          workflow.description.toLowerCase().includes(searchLower))
+      );
+    })
+    .sort((a, b) => b.createdAt - a.createdAt);
 
   return (
     <div className="min-h-screen w-full bg-[#FDFBF6] p-6">
